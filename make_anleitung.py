@@ -205,7 +205,7 @@ for (x0, head, items) in [
 c.setStrokeColor(HexColor("#E5E0DC")); c.setLineWidth(1)
 c.line(M, 108, W - M, 108)
 c.setFillColor(GRAY); c.setFont("Helvetica", 9)
-c.drawCentredString(W / 2, 88, "Sozial Walk · Stempelkarten · Version v3 · Stand: Juni 2026")
+c.drawCentredString(W / 2, 88, "Sozial Walk · Stempelkarten · Version v4 · Stand: Juni 2026")
 c.setFillColor(TEAL); c.setFont("Helvetica-Bold", 9)
 c.drawCentredString(W / 2, 73, "Hundetraining Susi Zednik")
 
