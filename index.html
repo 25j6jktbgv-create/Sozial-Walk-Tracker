@@ -43,8 +43,9 @@ input{font-family:inherit}
 .logo{width:48px; height:48px; border-radius:50%; flex:0 0 auto; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.18); object-fit:cover}
 .brand h1{margin:0; font-size:20px; font-weight:800; letter-spacing:-.2px}
 .brand .sub{margin:1px 0 0; font-size:12.5px; opacity:.85; font-weight:500}
-.gear{margin-left:auto; width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,.16); display:grid; place-items:center; font-size:19px}
+.gear{width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,.16); display:grid; place-items:center; font-size:19px}
 .gear:active{transform:scale(.92)}
+.top-actions{margin-left:auto; display:flex; gap:8px}
 
 .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:16px}
 .stat{background:rgba(255,255,255,.13); border-radius:15px; padding:11px 8px; text-align:center}
@@ -169,6 +170,27 @@ input{font-family:inherit}
 #cfx{position:fixed; inset:0; z-index:70; pointer-events:none}
 .center{text-align:center}
 .big-emoji{font-size:46px; text-align:center; margin:6px 0}
+
+/* ===================== Dashboard & Archiv ===================== */
+.dash-stats{display:grid; grid-template-columns:repeat(2,1fr); gap:9px}
+.dcard{background:var(--card); border:1px solid var(--line); border-radius:15px; padding:13px 14px; box-shadow:var(--sh-sm)}
+.dcard .n{font-size:24px; font-weight:800; color:var(--berry); line-height:1.1}
+.dcard .l{font-size:12px; color:var(--gray); font-weight:600; margin-top:2px}
+.bars{display:flex; align-items:flex-end; gap:8px; height:124px; padding:18px 2px 0}
+.bars .bar{flex:1; display:flex; flex-direction:column; align-items:center; gap:7px; height:100%; justify-content:flex-end}
+.bars .bk{width:100%; max-width:34px; border-radius:7px 7px 3px 3px; background:linear-gradient(180deg,var(--berry-2),var(--berry)); min-height:3px; position:relative; transition:height .4s cubic-bezier(.22,1,.36,1)}
+.bars .bv{position:absolute; top:-17px; left:-6px; right:-6px; text-align:center; font-size:11px; font-weight:800; color:var(--berry)}
+.bars .bl{font-size:10.5px; color:var(--gray); font-weight:600}
+.arch{background:var(--card); border:1px solid var(--line); border-radius:15px; padding:12px 14px; margin-top:10px; box-shadow:var(--sh-sm)}
+.arch .ah{display:flex; align-items:center; gap:7px}
+.arch .ah .nm{font-weight:700; font-size:15px}
+.arch .ah .d{margin-left:auto; font-size:12.5px; color:var(--gray)}
+.arch .pawline{margin:8px 0 11px; font-size:15px; letter-spacing:3px}
+.arch .actions{display:flex; gap:8px}
+.arch .actions button{flex:1; padding:10px; border-radius:11px; font-weight:700; font-size:13.5px}
+.abtn-re{background:var(--berry-l); color:var(--berry)}
+.abtn-del{background:#fbecea; color:var(--danger)}
+.warn{font-size:13.5px; color:var(--gray); text-align:center; padding:20px}
 </style>
 </head>
 <body>
@@ -180,7 +202,10 @@ input{font-family:inherit}
         <h1>Sozial Walk</h1>
         <div class="sub">Stempelkarten · Susi Zednik</div>
       </div>
-      <button class="gear" onclick="openSettings()" aria-label="Einstellungen">⚙️</button>
+      <div class="top-actions">
+        <button class="gear" onclick="openDashboard()" aria-label="Übersicht">📊</button>
+        <button class="gear" onclick="openSettings()" aria-label="Einstellungen">⚙️</button>
+      </div>
     </div>
     <div class="stats" id="stats"></div>
   </header>
@@ -203,8 +228,14 @@ input{font-family:inherit}
 <script>
 'use strict';
 /* ================= Version & Verlauf ================= */
-const APP_VERSION = 'v2';
+const APP_VERSION = 'v3';
 const VERSIONS = [
+  { v:'v3', date:'22. Juni 2026', notes:[
+    'Echtes Markenlogo mit Hunde-Silhouette als App-Icon (klar sichtbar)',
+    'Neues Dashboard (📊): Sozial Walks pro Monat als Balken, „länger nicht da"-Hinweis',
+    'Archiv für volle Karten: einzeln reaktivieren oder löschen',
+    'Optionsfenster lässt sich jetzt per Wisch nach unten schließen'
+  ]},
   { v:'v2', date:'22. Juni 2026', notes:[
     'Echtes rundes Logo der Hundeschule als App-Icon, Farbwelt ans Logo angepasst',
     'Supereinfach: Halter antippen → Stempel → fertig',
@@ -400,11 +431,84 @@ function showHistory(){ pop('<h2>Versionsverlauf</h2><p class="p">Alle Änderung
 function askReset(){ pop('<div class="big-emoji">⚠️</div><h2 class="center">Alles zurücksetzen?</h2><p class="p center">Alle Kunden und Stempel werden endgültig gelöscht. Das kann nicht rückgängig gemacht werden.</p><button class="btn danger" onclick="doReset()">Ja, alles löschen</button><button class="btn gray" onclick="openSettings()">Abbrechen</button>'); }
 function doReset(){ try{ localStorage.removeItem(DB); }catch(e){} location.reload(); }
 
+/* ================= Dashboard ================= */
+function allStampDates(){ const out=[]; S.customers.forEach(c=>{ (c.stamps||[]).forEach(d=>out.push(d)); (c.done||[]).forEach(r=>(r.stamps||[]).forEach(d=>out.push(d))); }); return out; }
+function lastDate(c){ const ds=[]; (c.stamps||[]).forEach(d=>ds.push(d)); (c.done||[]).forEach(r=>(r.stamps||[]).forEach(d=>ds.push(d))); ds.sort(); return ds[ds.length-1]||''; }
+function daysSince(iso){ const a=new Date(iso+'T00:00:00'), b=new Date(todayISO()+'T00:00:00'); return Math.floor((b-a)/864e5); }
+function monthsBack(k){ const arr=[], d=new Date(todayISO()+'T00:00:00'); d.setDate(1); for(let i=k-1;i>=0;i--){ const m=new Date(d.getFullYear(),d.getMonth()-i,1); arr.push({ ym:m.getFullYear()+'-'+String(m.getMonth()+1).padStart(2,'0'), label:m.toLocaleDateString('de-DE',{month:'short'}).replace('.','') }); } return arr; }
+
+function openDashboard(){
+  const stamps=allStampDates(), total=stamps.length, ym=todayISO().slice(0,7);
+  const monat=stamps.filter(d=>d.slice(0,7)===ym).length;
+  const archivN=S.customers.reduce((a,c)=>a+((c.done||[]).length),0);
+  const aktive=S.customers.filter(c=>{const n=(c.stamps||[]).length; return n>0&&n<5;}).length;
+  const months=monthsBack(6), counts=months.map(m=>stamps.filter(d=>d.slice(0,7)===m.ym).length), max=Math.max(1,...counts);
+  const bars=months.map((m,i)=>{ const h=counts[i]?Math.max(Math.round(counts[i]/max*100),7):0; return '<div class="bar"><div class="bk" style="height:'+h+'%">'+(counts[i]?'<span class="bv">'+counts[i]+'</span>':'')+'</div><div class="bl">'+esc(m.label)+'</div></div>'; }).join('');
+  const inact=S.customers.map(c=>({c,last:lastDate(c)})).filter(x=>!x.last||daysSince(x.last)>42).sort((a,b)=>(a.last||'0').localeCompare(b.last||'0'));
+  const inactHtml=inact.length? inact.slice(0,6).map(x=>'<div class="hi"><span class="g">🐕</span> '+esc(x.c.name)+(x.c.dog?' · '+esc(x.c.dog):'')+'<span class="d">'+(x.last?'vor '+Math.max(1,Math.floor(daysSince(x.last)/7))+' Wo.':'noch nie')+'</span></div>').join('') : '<div class="warn">Alle waren kürzlich da 👍</div>';
+  pop(
+    '<h2>Übersicht</h2>'+
+    '<div class="dash-stats">'+
+      '<div class="dcard"><div class="n">'+S.customers.length+'</div><div class="l">Kund:innen</div></div>'+
+      '<div class="dcard"><div class="n">'+aktive+'</div><div class="l">Aktive Karten</div></div>'+
+      '<div class="dcard"><div class="n">'+monat+'</div><div class="l">Walks diesen Monat</div></div>'+
+      '<div class="dcard"><div class="n">'+total+'</div><div class="l">Walks gesamt</div></div>'+
+    '</div>'+
+    '<div class="lbl">Sozial Walks pro Monat</div><div class="dcard"><div class="bars">'+bars+'</div></div>'+
+    '<div class="lbl">Länger nicht da (über 6 Wochen)</div><div class="dcard"><div class="hist">'+inactHtml+'</div></div>'+
+    '<div class="lbl">Archiv</div><div class="rows"><div class="row tap" onclick="openArchive()"><span class="ri">🗂️</span><span class="rt">Volle Karten im Archiv</span><span class="rv">'+archivN+'</span><span class="chev">›</span></div></div>'+
+    '<button class="btn ghost" onclick="closePop()">Schließen</button>'
+  );
+}
+
+/* ================= Archiv (volle Karten) ================= */
+function openArchive(){
+  const items=[];
+  S.customers.forEach(c=>(c.done||[]).forEach((r,idx)=>items.push({c,r,idx})));
+  items.sort((a,b)=>(b.r.date||'').localeCompare(a.r.date||''));
+  const body=items.length? items.map(it=>
+    '<div class="arch"><div class="ah"><span class="nm">'+esc(it.c.name)+'</span>'+(it.c.dog?'<span style="color:var(--gray);font-size:13px">· '+esc(it.c.dog)+'</span>':'')+'<span class="d">'+esc(fmtDate(it.r.date))+'</span></div>'+
+      '<div class="pawline">🐾🐾🐾🐾🐾</div>'+
+      '<div class="actions"><button class="abtn-re" onclick="reactivateCard(\''+it.c.id+'\','+it.idx+')">↩︎ Reaktivieren</button><button class="abtn-del" onclick="askDeleteArchived(\''+it.c.id+'\','+it.idx+')">🗑 Löschen</button></div></div>'
+  ).join('') : '<div class="warn">Noch keine vollen Karten im Archiv.</div>';
+  pop('<h2>Archiv</h2><p class="p">Abgeschlossene Karten. Du kannst einzelne reaktivieren oder löschen, um aufzuräumen.</p>'+body+'<button class="btn ghost" onclick="openDashboard()">Zurück</button>');
+}
+function reactivateCard(id, idx){
+  const c=cust(id); if(!c||!c.done||!c.done[idx]) return;
+  if((c.stamps||[]).length>0){
+    pop('<div class="big-emoji">↩︎</div><h2 class="center">Karte ersetzen?</h2><p class="p center"><b>'+esc(c.name)+'</b> hat aktuell eine Karte mit '+c.stamps.length+'/5 Stempeln. Beim Reaktivieren wird diese durch die archivierte (volle) Karte ersetzt.</p>'+
+      '<button class="btn" onclick="doReactivate(\''+id+'\','+idx+')">Ja, ersetzen</button><button class="btn gray" onclick="openArchive()">Abbrechen</button>'); return;
+  }
+  doReactivate(id, idx);
+}
+function doReactivate(id, idx){
+  const c=cust(id); if(!c||!c.done||!c.done[idx]) return;
+  c.stamps=(c.done[idx].stamps||[]).slice(); c.done.splice(idx,1); save();
+  renderList(); openArchive(); toast('Karte reaktiviert ↩︎');
+}
+function askDeleteArchived(id, idx){
+  const c=cust(id); if(!c||!c.done||!c.done[idx]) return;
+  pop('<div class="big-emoji">🗑️</div><h2 class="center">Karte löschen?</h2><p class="p center">Diese abgeschlossene Karte von <b>'+esc(c.name)+'</b> wird endgültig aus dem Archiv gelöscht.</p>'+
+    '<button class="btn danger" onclick="doDeleteArchived(\''+id+'\','+idx+')">Ja, löschen</button><button class="btn gray" onclick="openArchive()">Abbrechen</button>');
+}
+function doDeleteArchived(id, idx){ const c=cust(id); if(!c||!c.done) return; c.done.splice(idx,1); save(); renderList(); openArchive(); toast('Aus Archiv gelöscht'); }
+
 /* ================= Popups & Toast ================= */
 let ovlDismiss=true;
-function pop(html,opts){ ovlDismiss=!opts||opts.dismiss!==false; const o=$('#ovl'); o.innerHTML='<div class="sheet"><div class="grab"></div>'+html+'</div>'; o.classList.add('show'); }
+function pop(html,opts){ ovlDismiss=!opts||opts.dismiss!==false; const o=$('#ovl'); o.innerHTML='<div class="sheet"><div class="grab"></div>'+html+'</div>'; o.classList.add('show'); attachDrag(o.querySelector('.sheet')); }
 function closePop(){ const o=$('#ovl'); o.classList.remove('show'); setTimeout(()=>{ if(!o.classList.contains('show')) o.innerHTML=''; },240); }
 $('#ovl').addEventListener('click',e=>{ if(e.target.id==='ovl'&&ovlDismiss) closePop(); });
+
+/* Wisch nach unten schließt das Sheet (nur wenn oben gescrollt & dismissbar) */
+function attachDrag(sheet){
+  if(!sheet) return;
+  let startY=0, dy=0, dragging=false;
+  sheet.addEventListener('touchstart', e=>{ if(sheet.scrollTop>0){ dragging=false; return; } startY=e.touches[0].clientY; dy=0; dragging=true; sheet.style.transition='none'; }, {passive:true});
+  sheet.addEventListener('touchmove', e=>{ if(!dragging) return; dy=e.touches[0].clientY-startY; if(dy>0) sheet.style.transform='translateY('+dy+'px)'; }, {passive:true});
+  sheet.addEventListener('touchend', ()=>{ if(!dragging) return; dragging=false; sheet.style.transition='';
+    if(dy>110 && ovlDismiss){ sheet.style.transform='translateY(100%)'; closePop(); }
+    else sheet.style.transform=''; });
+}
 let toastT;
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2100); }
 

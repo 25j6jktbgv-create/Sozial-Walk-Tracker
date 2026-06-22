@@ -1,5 +1,5 @@
 /* Sozial Walk – Stempelkarten · Service Worker */
-const CACHE = 'sozial-walk-v2';
+const CACHE = 'sozial-walk-v3';
 const ASSETS = [
   './',
   './index.html',
