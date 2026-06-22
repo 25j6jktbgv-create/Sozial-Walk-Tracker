@@ -1,11 +1,12 @@
 /* Sozial Walk – Stempelkarten · Service Worker */
-const CACHE = 'sozial-walk-v1';
+const CACHE = 'sozial-walk-v2';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './icon.svg',
-  './apple-touch-icon.png'
+  './apple-touch-icon.png',
+  './icon-512.png',
+  './logo.png'
 ];
 
 self.addEventListener('install', e => {

@@ -9,12 +9,13 @@ from reportlab.pdfbase.pdfmetrics import stringWidth
 OUT = "Installationsanleitung.pdf"
 APP_URL = "https://25j6jktbgv-create.github.io/Sozial-Walk-Tracker/"
 
-TEAL   = HexColor("#15715E")
-TEAL_D = HexColor("#0C5446")
-TEAL_2 = HexColor("#2E9A7F")
-ORANGE = HexColor("#F2954A")
-CORAL  = HexColor("#EF6F53")
-AMBER  = HexColor("#F5BF06")
+# Farben aus dem runden Logo abgeleitet (Beerenrot) + warmer Amber-Akzent
+TEAL   = HexColor("#7C3447")   # Primär (Beerenrot)
+TEAL_D = HexColor("#5E2536")
+TEAL_2 = HexColor("#98455B")
+ORANGE = HexColor("#E0913E")
+CORAL  = HexColor("#E2705A")
+AMBER  = HexColor("#F0C24A")
 INK    = HexColor("#15241F")
 GRAY   = HexColor("#6E807A")
 LIGHT  = HexColor("#F2EFE8")
@@ -83,10 +84,14 @@ paw(150, 700, 1.5, WHITE, .10)
 paw(500, 730, 1.2, WHITE, .10)
 c.restoreState()
 
-# App-Icon rechts oben: weiße Kachel mit Teal-Pfote
+# App-Icon rechts oben: echtes rundes Logo auf weißem Ring
 ix, iy, isz = W - M - 70, 718, 70
-c.setFillColor(WHITE); c.roundRect(ix, iy, isz, isz, 16, stroke=0, fill=1)
-paw(ix + isz/2, iy + isz/2 - 4, 1.95, TEAL)
+c.setFillColor(WHITE); c.circle(ix + isz/2, iy + isz/2, isz/2 + 3, stroke=0, fill=1)
+try:
+    from reportlab.lib.utils import ImageReader
+    c.drawImage(ImageReader("logo.png"), ix, iy, isz, isz, mask='auto')
+except Exception:
+    paw(ix + isz/2, iy + isz/2 - 4, 1.95, TEAL)
 
 # Kopfband-Texte
 c.setFillColor(WHITE); c.setFillAlpha(.9)
@@ -200,7 +205,7 @@ for (x0, head, items) in [
 c.setStrokeColor(HexColor("#E5E0DC")); c.setLineWidth(1)
 c.line(M, 108, W - M, 108)
 c.setFillColor(GRAY); c.setFont("Helvetica", 9)
-c.drawCentredString(W / 2, 88, "Sozial Walk · Stempelkarten · Version v1 · Stand: Juni 2026")
+c.drawCentredString(W / 2, 88, "Sozial Walk · Stempelkarten · Version v2 · Stand: Juni 2026")
 c.setFillColor(TEAL); c.setFont("Helvetica-Bold", 9)
 c.drawCentredString(W / 2, 73, "Hundetraining Susi Zednik")
 

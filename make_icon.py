@@ -1,37 +1,30 @@
 #!/usr/bin/env python3
-"""Erzeugt das apple-touch-icon.png (180x180) – Teal-Kachel mit weißer Pfote."""
-from PIL import Image, ImageDraw
+"""Erzeugt die App-Icons aus dem runden Website-Logo (logo-src.png):
+- apple-touch-icon.png (180) : vollflächige Beeren-Kachel mit Logo (iOS rundet selbst)
+- icon-512.png (512)         : maskable Variante fürs PWA-Manifest
+- logo.png (256)             : rundes Logo mit transparenten Ecken für den App-Header
+"""
+from PIL import Image
 
-SZ = 180
-SS = 4                      # Supersampling für glatte Kanten
-W = SZ * SS
-img = Image.new("RGB", (W, W), "#15715E")
-d = ImageDraw.Draw(img)
+BERRY = (124, 52, 71)          # #7C3447 – Grundfarbe aus dem Logo
+SRC = "logo-src.png"
 
-# Sanfter Diagonal-Verlauf Teal -> dunkles Teal
-top = (46, 154, 127)       # #2E9A7F
-bot = (12, 84, 70)         # #0C5446
-for y in range(W):
-    t = y / W
-    r = int(top[0] + (bot[0]-top[0]) * t)
-    g = int(top[1] + (bot[1]-top[1]) * t)
-    b = int(top[2] + (bot[2]-top[2]) * t)
-    d.line([(0, y), (W, y)], fill=(r, g, b))
+src = Image.open(SRC).convert("RGBA")
 
+def tile(size, scale=1.08):
+    """Vollflächige Beeren-Kachel mit dem echten Logo in Originalproportion
+    (der Kreisrand läuft nahtlos in die gleichfarbige Kachel; iOS rundet selbst)."""
+    canvas = Image.new("RGBA", (size, size), BERRY + (255,))
+    s = int(size * scale)
+    logo = src.resize((s, s), Image.LANCZOS)
+    off = (size - s) // 2
+    canvas.alpha_composite(logo, (off, off))
+    return canvas.convert("RGB")
 
-def paw(cx, cy, rx, ry):
-    d.ellipse([cx-rx, cy-ry, cx+rx, cy+ry], fill="white")
+tile(180).save("apple-touch-icon.png")
+tile(512).save("icon-512.png")
 
+# Rundes Logo (transparente Ecken) für den Header in der App
+src.resize((256, 256), Image.LANCZOS).save("logo.png")
 
-# Pfote (an icon.svg angelehnt), zentriert & leicht nach oben
-S = SS
-ox, oy = 0, -6 * S
-paw(256*S+ox, 300*S+oy, 78*S, 64*S)        # Ballen
-paw(168*S+ox, 232*S+oy, 34*S, 42*S)        # Zehen
-paw(232*S+ox, 190*S+oy, 32*S, 40*S)
-paw(304*S+ox, 190*S+oy, 32*S, 40*S)
-paw(356*S+ox, 232*S+oy, 34*S, 42*S)
-
-img = img.resize((SZ, SZ), Image.LANCZOS)
-img.save("apple-touch-icon.png")
-print("OK -> apple-touch-icon.png")
+print("OK -> apple-touch-icon.png, icon-512.png, logo.png")

@@ -1,16 +1,16 @@
 {
   "name": "Sozial Walk · Stempelkarten",
   "short_name": "Sozial Walk",
-  "description": "Mini-Kundenverwaltung mit digitaler Stempelkarte für Sozial-Walk-Gutscheine – Hundetraining Susi Zednik.",
+  "description": "Mini-Kundenverwaltung mit digitaler Stempelkarte für Sozial-Walk-Einheiten – Hundetraining Susi Zednik.",
   "lang": "de",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#F5F2EC",
-  "theme_color": "#15715E",
+  "background_color": "#F6F1EF",
+  "theme_color": "#7C3447",
   "icons": [
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
     { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
   ]
 }
