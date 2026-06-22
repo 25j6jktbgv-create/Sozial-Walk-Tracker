@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#15715E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sozial Walk">
+<title>Sozial Walk · Stempelkarten</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<style>
+/* ===================== Design-Tokens (Website-Look) ===================== */
+:root{
+  --teal:#15715E; --teal-d:#0C5446; --teal-l:#E5F1ED; --teal-2:#2E9A7F;
+  --orange:#F2954A; --coral:#EF6F53; --amber:#F5BF06;
+  --ink:#15241F; --gray:#6E807A; --bg:#F5F2EC; --card:#FFFFFF;
+  --line:#E9E3D9; --good:#34C759; --danger:#E1483C;
+  --sh:0 8px 24px rgba(16,52,44,.10); --sh-sm:0 2px 8px rgba(16,52,44,.07);
+  --r:20px; --safe-t:env(safe-area-inset-top); --safe-b:env(safe-area-inset-bottom);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg); color:var(--ink); line-height:1.45;
+  -webkit-font-smoothing:antialiased; overscroll-behavior-y:none;
+}
+button{font-family:inherit; cursor:pointer; border:0; background:none; color:inherit}
+input{font-family:inherit}
+
+/* ===================== App-Rahmen ===================== */
+.app{max-width:540px; margin:0 auto; min-height:100vh; min-height:100dvh; position:relative}
+
+/* ----- Kopf ----- */
+.top{
+  position:sticky; top:0; z-index:30;
+  padding:calc(var(--safe-t) + 14px) 18px 14px;
+  background:linear-gradient(180deg,var(--teal) 0%, var(--teal-d) 100%);
+  color:#fff; border-bottom-left-radius:24px; border-bottom-right-radius:24px;
+  box-shadow:var(--sh);
+}
+.top .brand{display:flex; align-items:center; gap:12px}
+.logo{
+  width:46px; height:46px; border-radius:14px; background:rgba(255,255,255,.16);
+  display:grid; place-items:center; font-size:26px; flex:0 0 auto;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);
+}
+.brand h1{margin:0; font-size:20px; font-weight:800; letter-spacing:-.2px}
+.brand .sub{margin:1px 0 0; font-size:12.5px; opacity:.82; font-weight:500}
+.gear{
+  margin-left:auto; width:40px; height:40px; border-radius:50%;
+  background:rgba(255,255,255,.16); display:grid; place-items:center; font-size:19px;
+}
+.gear:active{transform:scale(.92)}
+
+/* ----- Statistik ----- */
+.stats{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:16px}
+.stat{background:rgba(255,255,255,.13); border-radius:15px; padding:11px 10px; text-align:center}
+.stat .n{font-size:23px; font-weight:800; line-height:1.1}
+.stat .l{font-size:10.5px; opacity:.85; margin-top:2px; font-weight:600; letter-spacing:.1px}
+.stat.hl{background:rgba(242,149,74,.26); box-shadow:inset 0 0 0 1px rgba(242,149,74,.5)}
+
+/* ----- Suche ----- */
+.searchwrap{padding:16px 18px 4px}
+.search{
+  display:flex; align-items:center; gap:9px; background:var(--card); border:1px solid var(--line);
+  border-radius:14px; padding:11px 14px; box-shadow:var(--sh-sm);
+}
+.search input{border:0; outline:0; font-size:16px; width:100%; background:none; color:var(--ink)}
+.search .ic{font-size:16px; opacity:.5}
+
+/* ----- Liste ----- */
+.list{padding:8px 18px 130px}
+.crow{
+  display:flex; align-items:center; gap:13px; background:var(--card); border:1px solid var(--line);
+  border-radius:var(--r); padding:13px 14px; margin-top:11px; box-shadow:var(--sh-sm);
+  transition:transform .12s ease;
+}
+.crow:active{transform:scale(.985)}
+.av{
+  width:46px; height:46px; border-radius:14px; flex:0 0 auto; display:grid; place-items:center;
+  font-weight:800; font-size:18px; color:#fff;
+  background:linear-gradient(135deg,var(--teal-2),var(--teal));
+}
+.cinfo{min-width:0; flex:1}
+.cinfo .nm{font-weight:700; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.cinfo .dg{font-size:13px; color:var(--gray); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.mini{display:flex; gap:5px; margin-top:7px}
+.mini i{
+  width:15px; height:15px; border-radius:50%; background:var(--teal-l);
+  box-shadow:inset 0 0 0 1.5px rgba(21,113,94,.22); font-style:normal;
+  display:grid; place-items:center; font-size:9px;
+}
+.mini i.f{background:var(--teal); box-shadow:none; color:#fff}
+.cright{display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex:0 0 auto}
+.badge{
+  font-size:11px; font-weight:800; padding:4px 9px; border-radius:999px;
+  background:var(--orange); color:#fff; white-space:nowrap;
+  animation:bpulse 1.6s ease-in-out infinite;
+}
+@keyframes bpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+.chev{color:#c4ccc8; font-size:22px; font-weight:700}
+
+/* ----- Leerzustand ----- */
+.empty{text-align:center; padding:54px 30px; color:var(--gray)}
+.empty .em{font-size:54px}
+.empty h3{margin:14px 0 4px; color:var(--ink); font-size:18px}
+.empty p{margin:0; font-size:14px}
+
+/* ----- FAB ----- */
+.fab{
+  position:fixed; left:50%; transform:translateX(calc(-50% + 540px/2 - 50px));
+  bottom:calc(var(--safe-b) + 20px); z-index:40;
+  height:56px; padding:0 22px 0 18px; border-radius:30px; color:#fff; font-weight:800; font-size:16px;
+  background:linear-gradient(135deg,var(--orange),var(--coral)); box-shadow:0 10px 26px rgba(239,111,83,.42);
+  display:flex; align-items:center; gap:9px;
+}
+.fab:active{transform:translateX(calc(-50% + 540px/2 - 50px)) scale(.95)}
+.fab .pl{font-size:24px; font-weight:400; line-height:1}
+@media(max-width:560px){
+  .fab{left:auto; right:20px; transform:none}
+  .fab:active{transform:scale(.95)}
+}
+
+/* ===================== Overlay / Sheets ===================== */
+.ovl{
+  position:fixed; inset:0; z-index:60; background:rgba(18,36,31,.42); backdrop-filter:blur(3px);
+  display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none;
+  transition:opacity .22s ease;
+}
+.ovl.show{opacity:1; pointer-events:auto}
+.sheet{
+  width:100%; max-width:540px; background:var(--bg); border-radius:26px 26px 0 0;
+  padding:10px 20px calc(var(--safe-b) + 24px); max-height:92vh; overflow-y:auto;
+  transform:translateY(24px); transition:transform .26s cubic-bezier(.22,1,.36,1);
+  -webkit-overflow-scrolling:touch;
+}
+.ovl.show .sheet{transform:translateY(0)}
+.grab{width:40px; height:5px; border-radius:3px; background:#d8d2c6; margin:6px auto 14px}
+.sheet h2{margin:2px 0 4px; font-size:21px; letter-spacing:-.3px}
+.sheet .p{color:var(--gray); font-size:14.5px; margin:0 0 16px}
+.lbl{font-size:12.5px; font-weight:700; color:var(--gray); text-transform:uppercase; letter-spacing:.4px; margin:14px 2px 7px}
+
+/* Felder */
+.field{
+  width:100%; background:var(--card); border:1px solid var(--line); border-radius:14px;
+  padding:13px 14px; font-size:16px; color:var(--ink); outline:0; margin-bottom:2px;
+}
+.field:focus{border-color:var(--teal-2); box-shadow:0 0 0 3px rgba(46,154,127,.16)}
+textarea.field{resize:none; min-height:74px}
+
+/* Buttons */
+.btn{
+  width:100%; padding:15px; border-radius:15px; font-size:16px; font-weight:800; color:#fff;
+  background:linear-gradient(135deg,var(--teal-2),var(--teal)); margin-top:12px; box-shadow:var(--sh-sm);
+}
+.btn:active{transform:scale(.98)}
+.btn.orange{background:linear-gradient(135deg,var(--orange),var(--coral)); box-shadow:0 8px 20px rgba(239,111,83,.34)}
+.btn.gray{background:#ECE7DD; color:var(--ink); box-shadow:none}
+.btn.danger{background:#fff; color:var(--danger); box-shadow:inset 0 0 0 1.5px rgba(225,72,60,.4)}
+.btn.ghost{background:none; color:var(--gray); box-shadow:none; font-weight:600}
+.btn:disabled{opacity:.5}
+.btnrow{display:flex; gap:10px}
+.btnrow .btn{margin-top:12px}
+
+/* Einstellungs-Zeilen */
+.rows{background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden; box-shadow:var(--sh-sm)}
+.row{display:flex; align-items:center; gap:12px; padding:14px 15px; border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row .ri{font-size:18px; width:24px; text-align:center}
+.row .rt{flex:1; font-weight:600; font-size:15.5px}
+.row .rv{color:var(--gray); font-size:14px; font-weight:600}
+.row.tap{cursor:pointer}
+.row.tap:active{background:var(--teal-l)}
+.row.danger .rt{color:var(--danger)}
+
+/* Changelog / Versionsliste */
+.chlist{margin:6px 0 4px; padding-left:20px}
+.chlist li{margin:5px 0; font-size:14.5px; color:var(--ink)}
+.vlog{margin-top:4px}
+.vitem{background:var(--card); border:1px solid var(--line); border-radius:15px; padding:13px 15px; margin-top:10px; box-shadow:var(--sh-sm)}
+.vitem .vh{display:flex; align-items:baseline; gap:9px; margin-bottom:5px}
+.vitem .vv{font-weight:800; font-size:15px; color:var(--teal)}
+.vitem .vd{font-size:12.5px; color:var(--gray)}
+.vitem ul{margin:4px 0 0; padding-left:18px}
+.vitem li{font-size:13.5px; margin:3px 0; color:var(--ink)}
+.tagnew{font-size:10px; font-weight:800; color:#fff; background:var(--orange); padding:2px 7px; border-radius:999px}
+
+/* ===================== Stempelkarte ===================== */
+.cust-head{display:flex; align-items:center; gap:13px; margin-bottom:14px}
+.cust-head .av{width:50px; height:50px; font-size:20px}
+.cust-head .nm{font-weight:800; font-size:19px}
+.cust-head .dg{font-size:13.5px; color:var(--gray)}
+.cust-head .ed{margin-left:auto; width:40px; height:40px; border-radius:50%; background:var(--teal-l); display:grid; place-items:center; font-size:17px}
+
+.stampcard{
+  position:relative; border-radius:22px; padding:18px 18px 20px; color:#fff; overflow:hidden;
+  background:linear-gradient(140deg,var(--teal-2) 0%, var(--teal) 55%, var(--teal-d) 100%);
+  box-shadow:0 14px 34px rgba(12,84,70,.34);
+}
+.stampcard::after{content:""; position:absolute; right:-30px; top:-30px; width:130px; height:130px; border-radius:50%; background:rgba(255,255,255,.07)}
+.sc-top{display:flex; justify-content:space-between; align-items:flex-start; position:relative; z-index:2}
+.sc-ttl{font-size:13px; font-weight:800; letter-spacing:1.5px; opacity:.9}
+.sc-sub{font-size:11.5px; opacity:.75; margin-top:1px}
+.sc-cnt{font-size:13px; font-weight:800; background:rgba(255,255,255,.18); padding:4px 11px; border-radius:999px}
+.slots{display:grid; grid-template-columns:repeat(5,1fr); gap:9px; margin:18px 0 6px; position:relative; z-index:2}
+.slot{
+  aspect-ratio:1/1; border-radius:50%; background:rgba(255,255,255,.12);
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.32); display:grid; place-items:center; position:relative;
+}
+.slot.next{box-shadow:inset 0 0 0 2px #fff; cursor:pointer; animation:nextpulse 1.8s ease-in-out infinite}
+@keyframes nextpulse{0%,100%{box-shadow:inset 0 0 0 2px rgba(255,255,255,.7)}50%{box-shadow:inset 0 0 0 3px #fff}}
+.slot .num{font-size:15px; font-weight:800; opacity:.55}
+.slot.on{background:#fff; box-shadow:0 4px 10px rgba(0,0,0,.18)}
+.slot .paw{font-size:23px; line-height:1; filter:saturate(1.1)}
+.slot .dt{position:absolute; bottom:-15px; left:0; right:0; text-align:center; font-size:8.5px; opacity:.8; font-weight:600}
+.slot.pop .paw{animation:stampdrop .5s cubic-bezier(.18,1.4,.4,1) both}
+.slot.pop::before{content:""; position:absolute; inset:-2px; border-radius:50%; box-shadow:0 0 0 0 rgba(242,149,74,.55); animation:inkring .6s ease-out both}
+@keyframes stampdrop{0%{transform:scale(2.5) rotate(-28deg); opacity:0}45%{opacity:1}65%{transform:scale(.86) rotate(4deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes inkring{0%{box-shadow:0 0 0 0 rgba(242,149,74,.6)}100%{box-shadow:0 0 0 16px rgba(242,149,74,0)}}
+.sc-foot{display:flex; align-items:center; justify-content:space-between; position:relative; z-index:2; margin-top:18px}
+.sc-name{font-size:14px; font-weight:700; letter-spacing:.3px}
+.sc-name small{display:block; font-size:10px; opacity:.7; font-weight:600; letter-spacing:1px; text-transform:uppercase}
+.stampcard.full{animation:cardglow 1.2s ease-out}
+@keyframes cardglow{0%{box-shadow:0 0 0 0 rgba(242,149,74,.7),0 14px 34px rgba(12,84,70,.34)}100%{box-shadow:0 0 0 14px rgba(242,149,74,0),0 14px 34px rgba(12,84,70,.34)}}
+.fullnote{display:flex; align-items:center; gap:9px; background:rgba(245,191,6,.16); border:1px solid rgba(245,191,6,.4); color:#8a6d00; border-radius:13px; padding:11px 13px; margin-top:14px; font-size:14px; font-weight:700}
+
+/* Verlauf */
+.hist{margin-top:6px}
+.hist .hi{display:flex; align-items:center; gap:10px; padding:10px 2px; border-top:1px solid var(--line); font-size:14px}
+.hist .hi:first-child{border-top:0}
+.hist .hi .g{font-size:16px}
+.hist .hi .d{color:var(--gray); margin-left:auto; font-size:13px}
+
+/* ===================== PIN-Sperre ===================== */
+.lock{position:fixed; inset:0; z-index:90; background:linear-gradient(180deg,var(--teal),var(--teal-d)); color:#fff; display:none; flex-direction:column; align-items:center; justify-content:center; padding:30px}
+.lock.show{display:flex}
+.lock .lk{font-size:46px}
+.lock h2{margin:14px 0 2px; font-size:20px}
+.lock p{opacity:.8; font-size:14px; margin:0 0 22px}
+.dots{display:flex; gap:14px; margin-bottom:8px}
+.dots b{width:15px; height:15px; border-radius:50%; background:rgba(255,255,255,.3)}
+.dots b.f{background:#fff}
+.dots.err{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.pad{display:grid; grid-template-columns:repeat(3,72px); gap:14px; margin-top:26px}
+.key{height:72px; border-radius:50%; background:rgba(255,255,255,.14); font-size:26px; font-weight:600; display:grid; place-items:center}
+.key:active{background:rgba(255,255,255,.3)}
+.key.blank{background:none}
+
+/* Toast */
+.toast{
+  position:fixed; left:50%; bottom:calc(var(--safe-b) + 92px); transform:translateX(-50%) translateY(20px);
+  background:var(--ink); color:#fff; padding:12px 20px; border-radius:999px; font-size:14px; font-weight:600;
+  z-index:80; opacity:0; pointer-events:none; transition:all .25s ease; box-shadow:var(--sh); white-space:nowrap;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+/* Konfetti */
+#cfx{position:fixed; inset:0; z-index:70; pointer-events:none}
+
+.center{text-align:center}
+.big-emoji{font-size:46px; text-align:center; margin:6px 0}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="logo">🐾</div>
+      <div>
+        <h1>Sozial Walk</h1>
+        <div class="sub">Stempelkarten · Susi Zednik</div>
+      </div>
+      <button class="gear" onclick="openSettings()" aria-label="Einstellungen">⚙️</button>
+    </div>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="searchwrap">
+    <div class="search">
+      <span class="ic">🔍</span>
+      <input id="q" type="search" placeholder="Kund:in oder Hund suchen …" oninput="renderList()" autocomplete="off">
+    </div>
+  </div>
+
+  <main class="list" id="list"></main>
+</div>
+
+<button class="fab" onclick="editCustomer(null)"><span class="pl">＋</span> Neuer Kunde</button>
+
+<div class="ovl" id="ovl"></div>
+<div class="toast" id="toast"></div>
+<canvas id="cfx"></canvas>
+
+<!-- PIN-Sperre -->
+<div class="lock" id="lock">
+  <div class="lk">🔒</div>
+  <h2>Sozial Walk</h2>
+  <p>PIN eingeben</p>
+  <div class="dots" id="dots"><b></b><b></b><b></b><b></b></div>
+  <div class="pad" id="pad"></div>
+</div>
+
+<script>
+'use strict';
+/* ================= Version & Verlauf ================= */
+const APP_VERSION = 'v1';
+const VERSIONS = [
+  { v:'v1', date:'22. Juni 2026', notes:[
+    'Erste Version der Sozial-Walk-Stempelkarte 🐾',
+    'Kundenliste mit Suche, Anlegen & Bearbeiten',
+    'Digitale Stempelkarte mit 5 Einheiten – Tippen zum Stempeln',
+    'Gutschein einlösen mit Konfetti, wenn die Karte voll ist',
+    'Alles lokal gespeichert · Daten sichern & wiederherstellen',
+    'Automatischer Update-Hinweis & Versionsverlauf',
+    'Optionale PIN-Sperre zum Schutz der Kundendaten'
+  ]}
+];
+const CHANGES = VERSIONS[0].notes;
+
+/* ================= Daten ================= */
+const DB = 'sozial-walk';
+function ld(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
+function sv(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+function defState(){ return { v:1, pup:false, pin:'', customers:[] }; }
+let S = Object.assign(defState(), ld(DB,{}));
+function save(){ sv(DB,S); }
+
+/* ================= Helfer ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function uid(){ return 'c'+Date.now().toString(36)+Math.floor(performance.now()*9%1000).toString(36); }
+function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmtDate(iso){ if(!iso) return '–'; const d=new Date(iso+'T00:00:00'); return d.toLocaleDateString('de-DE',{day:'numeric',month:'long',year:'numeric'}); }
+function fmtShort(iso){ if(!iso) return ''; const d=new Date(iso+'T00:00:00'); return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}); }
+function initials(n){ const p=(n||'').trim().split(/\s+/); return ((p[0]||'')[0]||'?').toUpperCase()+((p[1]||'')[0]||'').toUpperCase(); }
+function cust(id){ return S.customers.find(c=>c.id===id); }
+
+/* ================= Statistik ================= */
+function renderStats(){
+  const kunden = S.customers.length;
+  const bereit = S.customers.filter(c=>(c.stamps||[]).length>=5).length;
+  const gutscheine = S.customers.reduce((a,c)=>a+((c.redeemed||[]).length),0);
+  $('#stats').innerHTML =
+    stat(kunden,'Kund:innen') +
+    stat(bereit,'Karten voll', bereit>0) +
+    stat(gutscheine,'Gutscheine');
+}
+function stat(n,l,hl){ return '<div class="stat'+(hl?' hl':'')+'"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>'; }
+
+/* ================= Liste ================= */
+function renderList(){
+  renderStats();
+  const q = ($('#q')?.value||'').trim().toLowerCase();
+  let list = S.customers.slice().sort((a,b)=>a.name.localeCompare(b.name,'de'));
+  if(q) list = list.filter(c=>(c.name+' '+(c.dog||'')).toLowerCase().includes(q));
+  const el = $('#list');
+  if(!S.customers.length){
+    el.innerHTML = '<div class="empty"><div class="em">🐶</div><h3>Noch keine Kunden</h3><p>Lege deinen ersten Kunden an und starte seine Stempelkarte.</p></div>';
+    return;
+  }
+  if(!list.length){ el.innerHTML = '<div class="empty"><div class="em">🔍</div><h3>Nichts gefunden</h3><p>Keine Treffer für „'+esc(q)+'".</p></div>'; return; }
+  el.innerHTML = list.map(c=>{
+    const n=(c.stamps||[]).length, full=n>=5;
+    const dots = Array.from({length:5},(_,i)=>'<i class="'+(i<n?'f':'')+'">'+(i<n?'🐾':'')+'</i>').join('');
+    return '<div class="crow" onclick="openCustomer(\''+c.id+'\')">'+
+      '<div class="av">'+esc(initials(c.name))+'</div>'+
+      '<div class="cinfo"><div class="nm">'+esc(c.name)+'</div>'+
+        (c.dog?'<div class="dg">🐕 '+esc(c.dog)+'</div>':'<div class="dg">&nbsp;</div>')+
+        '<div class="mini">'+dots+'</div></div>'+
+      '<div class="cright">'+(full?'<span class="badge">Gutschein bereit</span>':'<span style="font-size:12.5px;color:var(--gray);font-weight:700">'+n+'/5</span>')+
+        '<span class="chev">›</span></div>'+
+    '</div>';
+  }).join('');
+}
+
+/* ================= Kunde anlegen / bearbeiten ================= */
+function editCustomer(id){
+  const c = id?cust(id):null;
+  pop(
+    '<h2>'+(c?'Kunde bearbeiten':'Neuer Kunde')+'</h2>'+
+    '<div class="lbl">Name *</div><input class="field" id="f-name" placeholder="z. B. Maria Huber" value="'+esc(c?c.name:'')+'">'+
+    '<div class="lbl">Hundename</div><input class="field" id="f-dog" placeholder="z. B. Balu" value="'+esc(c?c.dog:'')+'">'+
+    '<div class="lbl">Telefon (optional)</div><input class="field" id="f-phone" inputmode="tel" placeholder="z. B. 0664 1234567" value="'+esc(c?c.phone:'')+'">'+
+    '<div class="lbl">Notiz (optional)</div><textarea class="field" id="f-note" placeholder="z. B. Zahlt bar, Hund reaktiv …">'+esc(c?c.note:'')+'</textarea>'+
+    '<button class="btn" onclick="saveCustomer('+(c?'\''+c.id+'\'':'null')+')">'+(c?'Speichern':'Kunde anlegen')+'</button>'+
+    (c?'<button class="btn danger" onclick="askDelete(\''+c.id+'\')">Kunde löschen</button>':'')+
+    '<button class="btn ghost" onclick="closePop()">Abbrechen</button>'
+  );
+  setTimeout(()=>$('#f-name')&&$('#f-name').focus(),250);
+}
+function saveCustomer(id){
+  const name=($('#f-name').value||'').trim();
+  if(!name){ toast('Bitte einen Namen eingeben'); return; }
+  const dog=($('#f-dog').value||'').trim(), phone=($('#f-phone').value||'').trim(), note=($('#f-note').value||'').trim();
+  if(id){ const c=cust(id); Object.assign(c,{name,dog,phone,note}); }
+  else { S.customers.push({id:uid(),name,dog,phone,note,stamps:[],redeemed:[]}); }
+  save(); closePop(); renderList();
+  toast(id?'Gespeichert ✓':'Kunde angelegt ✓');
+}
+function askDelete(id){
+  const c=cust(id);
+  pop('<div class="big-emoji">🗑️</div><h2 class="center">Kunde löschen?</h2>'+
+    '<p class="p center">„'+esc(c.name)+'" und alle Stempel werden endgültig gelöscht.</p>'+
+    '<button class="btn danger" onclick="doDelete(\''+id+'\')">Ja, löschen</button>'+
+    '<button class="btn gray" onclick="editCustomer(\''+id+'\')">Abbrechen</button>');
+}
+function doDelete(id){ S.customers=S.customers.filter(c=>c.id!==id); save(); closePop(); renderList(); toast('Gelöscht'); }
+
+/* ================= Kunden-Detail / Stempelkarte ================= */
+let openId=null;
+function openCustomer(id){ openId=id; renderCustomer(); }
+function renderCustomer(animateSlot){
+  const c=cust(openId); if(!c) return;
+  const n=(c.stamps||[]).length, full=n>=5;
+  const slots = Array.from({length:5},(_,i)=>{
+    const on=i<n, isNext=(i===n)&&!full;
+    return '<div class="slot'+(on?' on':'')+(isNext?' next':'')+(animateSlot===i?' pop':'')+'"'+
+      (isNext?' onclick="doStamp()"':'')+'>'+
+      (on?'<span class="paw">🐾</span><span class="dt">'+esc(fmtShort(c.stamps[i]))+'</span>':'<span class="num">'+(i+1)+'</span>')+
+    '</div>';
+  }).join('');
+
+  const histStamps = (c.stamps||[]).map((d,i)=>'<div class="hi"><span class="g">🐾</span> Stempel '+(i+1)+'<span class="d">'+esc(fmtDate(d))+'</span></div>').join('');
+  const histRedeem = (c.redeemed||[]).slice().reverse().map(r=>'<div class="hi"><span class="g">🎁</span> Gutschein ausgegeben<span class="d">'+esc(fmtDate(r.date))+'</span></div>').join('');
+
+  pop(
+    '<div class="cust-head">'+
+      '<div class="av">'+esc(initials(c.name))+'</div>'+
+      '<div><div class="nm">'+esc(c.name)+'</div>'+(c.dog?'<div class="dg">🐕 '+esc(c.dog)+(c.phone?' · '+esc(c.phone):'')+'</div>':(c.phone?'<div class="dg">'+esc(c.phone)+'</div>':''))+'</div>'+
+      '<button class="ed" onclick="editCustomer(\''+c.id+'\')">✏️</button>'+
+    '</div>'+
+
+    '<div class="stampcard'+(animateSlot===4?' full':'')+'" id="stampcard">'+
+      '<div class="sc-top"><div><div class="sc-ttl">SOZIAL WALK</div><div class="sc-sub">Stempelkarte · 5 Einheiten</div></div>'+
+        '<div class="sc-cnt">'+n+' / 5</div></div>'+
+      '<div class="slots">'+slots+'</div>'+
+      '<div class="sc-foot"><div class="sc-name"><small>Karte für</small>'+esc(c.name)+'</div>🐾</div>'+
+    '</div>'+
+
+    (full
+      ? '<div class="fullnote">🎉 Karte voll – Gutschein kann ausgegeben werden!</div>'+
+        '<button class="btn orange" onclick="redeem()">🎁 Gutschein einlösen</button>'+
+        '<button class="btn ghost" onclick="undoStamp()">Letzten Stempel zurücknehmen</button>'
+      : '<button class="btn" onclick="doStamp()">🐾 Stempel geben ('+n+'/5)</button>'+
+        (n>0?'<button class="btn ghost" onclick="undoStamp()">Letzten Stempel zurücknehmen</button>':'')
+    )+
+
+    (c.note?'<div class="lbl">Notiz</div><div style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 14px;font-size:14.5px">'+esc(c.note)+'</div>':'')+
+
+    ((histStamps||histRedeem)?'<div class="lbl">Verlauf</div><div class="hist">'+histRedeem+histStamps+'</div>':'')+
+
+    '<div style="font-size:13px;color:var(--gray);text-align:center;margin-top:18px">Eingelöste Gutscheine gesamt: <b>'+((c.redeemed||[]).length)+'</b></div>'+
+    '<button class="btn ghost" onclick="closePop()">Schließen</button>'
+  );
+}
+function doStamp(){
+  const c=cust(openId); if(!c) return;
+  if((c.stamps||[]).length>=5){ toast('Karte ist schon voll'); return; }
+  c.stamps.push(todayISO()); save();
+  const idx=c.stamps.length-1;
+  renderCustomer(idx);
+  renderList();
+  if(navigator.vibrate) navigator.vibrate(idx===4?[20,40,20]:15);
+  if(c.stamps.length>=5){ setTimeout(()=>{ confetti(1400); toast('Karte voll! 🎉'); },360); }
+}
+function undoStamp(){
+  const c=cust(openId); if(!c||!(c.stamps||[]).length) return;
+  c.stamps.pop(); save(); renderCustomer(); renderList();
+}
+function redeem(){
+  const c=cust(openId); if(!c||(c.stamps||[]).length<5) return;
+  c.redeemed=c.redeemed||[]; c.redeemed.push({date:todayISO(), stamps:c.stamps.slice()});
+  c.stamps=[]; save();
+  confetti(1600); if(navigator.vibrate) navigator.vibrate([30,50,30]);
+  pop('<div class="big-emoji">🎁</div><h2 class="center">Gutschein ausgegeben!</h2>'+
+    '<p class="p center">Für <b>'+esc(c.name)+'</b> wurde ein Sozial-Walk-Gutschein eingelöst. Eine neue, leere Stempelkarte ist bereit.</p>'+
+    '<button class="btn" onclick="renderCustomer()">Weiter</button>'+
+    '<button class="btn ghost" onclick="closePop()">Schließen</button>', {dismiss:false});
+  renderList();
+}
+
+/* ================= Einstellungen ================= */
+function openSettings(){
+  pop(
+    '<h2>Einstellungen</h2>'+
+    '<div class="rows">'+
+      '<div class="row"><span class="ri">📦</span><span class="rt">Version</span><span class="rv">'+APP_VERSION+'</span></div>'+
+      '<div class="row tap" onclick="showChanges()"><span class="ri">✨</span><span class="rt">Was ist neu</span><span class="chev">›</span></div>'+
+      '<div class="row tap" onclick="showHistory()"><span class="ri">🕘</span><span class="rt">Versionsverlauf</span><span class="chev">›</span></div>'+
+      '<div class="row tap" onclick="checkUpdate()"><span class="ri">🔄</span><span class="rt">Nach Updates suchen</span><span class="chev">›</span></div>'+
+    '</div>'+
+    '<div class="lbl">Daten</div><div class="rows">'+
+      '<div class="row tap" onclick="exportData()"><span class="ri">💾</span><span class="rt">Daten sichern (Export)</span><span class="chev">›</span></div>'+
+      '<div class="row tap" onclick="importData()"><span class="ri">📥</span><span class="rt">Daten wiederherstellen</span><span class="chev">›</span></div>'+
+      '<div class="row tap" onclick="pinSettings()"><span class="ri">🔒</span><span class="rt">PIN-Sperre</span><span class="rv">'+(S.pin?'An':'Aus')+'</span></div>'+
+    '</div>'+
+    '<div class="lbl">Mehr</div><div class="rows">'+
+      '<div class="row tap danger" onclick="askReset()"><span class="ri">⚠️</span><span class="rt">Alles zurücksetzen</span></div>'+
+    '</div>'+
+    '<button class="btn ghost" onclick="closePop()">Schließen</button>'
+  );
+}
+function showChanges(){
+  pop('<div class="big-emoji">✨</div><h2 class="center">Das ist neu in '+APP_VERSION+'</h2>'+
+    '<ul class="chlist">'+CHANGES.map(c=>'<li>'+esc(c)+'</li>').join('')+'</ul>'+
+    '<button class="btn" onclick="openSettings()">Alles klar</button>');
+}
+function showHistory(){
+  pop('<h2>Versionsverlauf</h2><p class="p">Alle Änderungen der App im Überblick.</p><div class="vlog">'+
+    VERSIONS.map((ver,i)=>'<div class="vitem"><div class="vh"><span class="vv">'+esc(ver.v)+'</span><span class="vd">'+esc(ver.date)+'</span>'+(i===0?'<span class="tagnew">aktuell</span>':'')+'</div>'+
+      '<ul>'+ver.notes.map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul></div>').join('')+
+    '</div><button class="btn ghost" onclick="openSettings()">Zurück</button>');
+}
+
+/* ================= Backup ================= */
+function exportData(){
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='sozial-walk-backup-'+todayISO()+'.json'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  toast('Sicherung erstellt 💾');
+}
+function importData(){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json,.json';
+  inp.onchange=()=>{ const f=inp.files[0]; if(!f) return; const r=new FileReader();
+    r.onload=()=>{ try{ const d=JSON.parse(r.result);
+      if(!d||!Array.isArray(d.customers)) throw 0;
+      pop('<div class="big-emoji">📥</div><h2 class="center">Wiederherstellen?</h2><p class="p center">Die Sicherung enthält <b>'+d.customers.length+'</b> Kunden. Deine aktuellen Daten werden ersetzt.</p>'+
+        '<button class="btn" onclick="applyImport()">Ja, wiederherstellen</button><button class="btn gray" onclick="openSettings()">Abbrechen</button>');
+      window.__imp=d;
+    }catch(e){ toast('Datei nicht lesbar'); } };
+    r.readAsText(f);
+  };
+  inp.click();
+}
+function applyImport(){ if(window.__imp){ S=Object.assign(defState(),window.__imp); save(); window.__imp=null; } closePop(); renderList(); toast('Daten wiederhergestellt ✓'); }
+function askReset(){
+  pop('<div class="big-emoji">⚠️</div><h2 class="center">Alles zurücksetzen?</h2><p class="p center">Alle Kunden, Stempel und Gutscheine werden endgültig gelöscht. Das kann nicht rückgängig gemacht werden.</p>'+
+    '<button class="btn danger" onclick="doReset()">Ja, alles löschen</button><button class="btn gray" onclick="openSettings()">Abbrechen</button>');
+}
+function doReset(){ try{ localStorage.removeItem(DB); }catch(e){} location.reload(); }
+
+/* ================= PIN ================= */
+function pinSettings(){
+  if(S.pin){
+    pop('<div class="big-emoji">🔒</div><h2 class="center">PIN-Sperre ist an</h2><p class="p center">Die App fragt beim Öffnen nach deiner 4-stelligen PIN.</p>'+
+      '<button class="btn danger" onclick="S.pin=\'\';save();openSettings();toast(\'PIN entfernt\')">PIN entfernen</button>'+
+      '<button class="btn gray" onclick="openSettings()">Zurück</button>');
+  } else {
+    pop('<div class="big-emoji">🔒</div><h2 class="center">PIN einrichten</h2><p class="p center">Schütze die Kundendaten mit einer 4-stelligen PIN.</p>'+
+      '<input class="field" id="pinset" inputmode="numeric" maxlength="4" placeholder="4-stellige PIN" style="text-align:center;letter-spacing:8px;font-size:22px">'+
+      '<button class="btn" onclick="savePin()">PIN speichern</button><button class="btn gray" onclick="openSettings()">Abbrechen</button>');
+    setTimeout(()=>$('#pinset')&&$('#pinset').focus(),250);
+  }
+}
+function savePin(){ const v=($('#pinset').value||'').replace(/\D/g,''); if(v.length!==4){ toast('Bitte 4 Ziffern'); return; } S.pin=v; save(); openSettings(); toast('PIN aktiviert 🔒'); }
+
+let pinBuf='';
+function buildPad(){
+  const keys=['1','2','3','4','5','6','7','8','9','','0','⌫'];
+  $('#pad').innerHTML=keys.map(k=>k===''?'<div class="key blank"></div>':'<button class="key" onclick="pinKey(\''+k+'\')">'+k+'</button>').join('');
+}
+function pinKey(k){
+  if(k==='⌫'){ pinBuf=pinBuf.slice(0,-1); }
+  else if(pinBuf.length<4){ pinBuf+=k; }
+  document.querySelectorAll('#dots b').forEach((b,i)=>b.classList.toggle('f',i<pinBuf.length));
+  if(pinBuf.length===4){
+    setTimeout(()=>{
+      if(pinBuf===S.pin){ $('#lock').classList.remove('show'); pinBuf=''; }
+      else { $('#dots').classList.add('err'); if(navigator.vibrate)navigator.vibrate(80); setTimeout(()=>{ $('#dots').classList.remove('err'); pinBuf=''; document.querySelectorAll('#dots b').forEach(b=>b.classList.remove('f')); },420); }
+    },120);
+  }
+}
+
+/* ================= Popups & Toast ================= */
+let ovlDismiss=true;
+function pop(html,opts){ ovlDismiss=!opts||opts.dismiss!==false; const o=$('#ovl'); o.innerHTML='<div class="sheet"><div class="grab"></div>'+html+'</div>'; o.classList.add('show'); }
+function closePop(){ const o=$('#ovl'); o.classList.remove('show'); setTimeout(()=>{ if(!o.classList.contains('show')) o.innerHTML=''; },240); }
+$('#ovl').addEventListener('click',e=>{ if(e.target.id==='ovl'&&ovlDismiss) closePop(); });
+let toastT;
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2100); }
+
+/* ================= Konfetti ================= */
+function confetti(dur){
+  const cv=$('#cfx'), ctx=cv.getContext('2d'); const dpr=Math.min(devicePixelRatio||1,2);
+  cv.width=innerWidth*dpr; cv.height=innerHeight*dpr; ctx.scale(dpr,dpr);
+  const cols=['#15715E','#2E9A7F','#F2954A','#EF6F53','#F5BF06','#ffffff'];
+  const N=110, parts=[];
+  for(let i=0;i<N;i++) parts.push({x:innerWidth/2+(Math.random()-.5)*120, y:innerHeight*0.42, vx:(Math.random()-.5)*9, vy:Math.random()*-11-4, g:.32+Math.random()*.18, s:6+Math.random()*7, r:Math.random()*6.28, vr:(Math.random()-.5)*.3, c:cols[i%cols.length]});
+  const t0=performance.now();
+  (function frame(t){
+    const el=t-t0; ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p=>{ p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.r+=p.vr;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle=p.c; ctx.globalAlpha=Math.max(0,1-el/dur);
+      ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6); ctx.restore(); });
+    if(el<dur) requestAnimationFrame(frame); else ctx.clearRect(0,0,innerWidth,innerHeight);
+  })(t0);
+}
+
+/* ================= Service Worker & Update ================= */
+let swReg=null;
+function promptUpdate(worker){
+  pop('<div class="big-emoji">🚀</div><h2 class="center">Neue Version verfügbar</h2><p class="p center">Eine Aktualisierung von Sozial Walk ist bereit. Jetzt laden?</p>'+
+    '<button class="btn orange" id="updBtn">Jetzt aktualisieren</button><button class="btn ghost" onclick="closePop()">Später</button>');
+  $('#updBtn').onclick=()=>{ S.pup=true; save(); worker.postMessage({type:'SKIP_WAITING'}); };
+}
+function checkUpdate(){
+  if(!swReg){ toast('Offline – Update nicht möglich'); return; }
+  toast('Suche nach Updates …'); swReg.update().catch(()=>{});
+  setTimeout(()=>{ if(!swReg.waiting&&!swReg.installing) toast('Du bist auf dem neuesten Stand ✓'); },2500);
+}
+if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1')){
+  navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{
+    swReg=reg;
+    if(reg.waiting&&navigator.serviceWorker.controller) promptUpdate(reg.waiting);
+    reg.addEventListener('updatefound',()=>{ const nw=reg.installing; nw&&nw.addEventListener('statechange',()=>{ if(nw.state==='installed'&&navigator.serviceWorker.controller) promptUpdate(nw); }); });
+  }).catch(()=>{});
+  let refreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(refreshing)return; refreshing=true; location.reload(); });
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&swReg) swReg.update().catch(()=>{}); });
+}
+
+/* ================= Boot ================= */
+function boot(){
+  buildPad(); renderList();
+  if(S.pin){ $('#lock').classList.add('show'); }
+  if(S.pup){
+    S.pup=false; save();
+    setTimeout(()=>confetti(1600),300);
+    pop('<div class="big-emoji">🎉</div><h2 class="center">Update installiert!</h2><p class="p center">Du nutzt jetzt Version '+APP_VERSION+'.</p>'+
+      '<div class="lbl" style="text-align:center">Das ist neu</div><ul class="chlist">'+CHANGES.map(c=>'<li>'+esc(c)+'</li>').join('')+'</ul>'+
+      '<button class="btn" onclick="closePop()">Los geht\'s</button>',{dismiss:false});
+  }
+}
+boot();
+</script>
+</body>
+</html>
